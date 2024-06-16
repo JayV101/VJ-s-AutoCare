@@ -5,11 +5,37 @@
     <title>Paycheck Details</title>
 </head>
 <body>
-    <h1>Paycheck Details for {{ paycheck.name }}</h1>
-    <p>Total Hours Worked: {{ paycheck.total_hours_worked }}</p>
-    <p>Base Pay: ${{ paycheck.base_pay }}</p>
-    <p>Overtime Pay: ${{ paycheck.overtime_pay }}</p>
-    <p>Total Pay: ${{ paycheck.total_pay }}</p>
-    <a href="/">Back to Home</a>
+    <h1>Paycheck Details</h1>
+    <div id="paycheck-details"></div>
+    <a href="index.html">Back to Home</a>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const name = urlParams.get('name');
+        const employees = JSON.parse(localStorage.getItem('employees')) || [];
+        const employee = employees.find(e => e.name === name);
+
+        function calculatePaycheck(employee) {
+            const baseHours = Math.min(employee.totalHoursWorked, 20);
+            const overtimeHours = Math.max(employee.totalHoursWorked - 20, 0);
+            const basePay = baseHours * employee.hourlyWage;
+            const overtimePay = overtimeHours * employee.hourlyWage * 1.15;
+            const totalPay = basePay + overtimePay;
+            return { basePay, overtimePay, totalPay };
+        }
+
+        if (employee) {
+            const { basePay, overtimePay, totalPay } = calculatePaycheck(employee);
+            document.getElementById('paycheck-details').innerHTML = `
+                <p>Employee Name: ${employee.name}</p>
+                <p>Total Hours Worked: ${employee.totalHoursWorked.toFixed(2)}</p>
+                <p>Base Pay: $${basePay.toFixed(2)}</p>
+                <p>Overtime Pay: $${overtimePay.toFixed(2)}</p>
+                <p>Total Pay: $${totalPay.toFixed(2)}</p>
+            `;
+        } else {
+            document.getElementById('paycheck-details').innerHTML = '<p>Employee not found.</p>';
+        }
+    </script>
 </body>
 </html>
