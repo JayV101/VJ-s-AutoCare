@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Paycheck Details</title>
+</head>
+<body>
+    <h1>Paycheck Details for {{ paycheck.name }}</h1>
+    <p>Total Hours Worked: {{ paycheck.total_hours_worked }}</p>
+    <p>Base Pay: ${{ paycheck.base_pay }}</p>
+    <p>Overtime Pay: ${{ paycheck.overtime_pay }}</p>
+    <p>Total Pay: ${{ paycheck.total_pay }}</p>
+    <a href="/">Back to Home</a>
+</body>
+</html>
