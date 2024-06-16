@@ -6,17 +6,39 @@
 </head>
 <body>
     <h1>All Paychecks</h1>
-    <ul>
-        {% for paycheck in paychecks %}
-            <li>
-                <h2>{{ paycheck.name }}</h2>
-                <p>Total Hours Worked: {{ paycheck.total_hours_worked }}</p>
-                <p>Base Pay: ${{ paycheck.base_pay }}</p>
-                <p>Overtime Pay: ${{ paycheck.overtime_pay }}</p>
-                <p>Total Pay: ${{ paycheck.total_pay }}</p>
-            </li>
-        {% endfor %}
-    </ul>
-    <a href="/">Back to Home</a>
+    <ul id="paycheck-list"></ul>
+    <a href="index.html">Back to Home</a>
+
+    <script>
+        const employees = JSON.parse(localStorage.getItem('employees')) || [];
+
+        function calculatePaycheck(employee) {
+            const baseHours = Math.min(employee.totalHoursWorked, 20);
+            const overtimeHours = Math.max(employee.totalHoursWorked - 20, 0);
+            const basePay = baseHours * employee.hourlyWage;
+            const overtimePay = overtimeHours * employee.hourlyWage * 1.15;
+            const totalPay = basePay + overtimePay;
+            return { basePay, overtimePay, totalPay };
+        }
+
+        function renderPaychecks() {
+            const paycheckList = document.getElementById('paycheck-list');
+            paycheckList.innerHTML = '';
+            employees.forEach(employee => {
+                const { basePay, overtimePay, totalPay } = calculatePaycheck(employee);
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <h2>${employee.name}</h2>
+                    <p>Total Hours Worked: ${employee.totalHoursWorked.toFixed(2)}</p>
+                    <p>Base Pay: $${basePay.toFixed(2)}</p>
+                    <p>Overtime Pay: $${overtimePay.toFixed(2)}</p>
+                    <p>Total Pay: $${totalPay.toFixed(2)}</p>
+                `;
+                paycheckList.appendChild(li);
+            });
+        }
+
+        renderPaychecks();
+    </script>
 </body>
 </html>
