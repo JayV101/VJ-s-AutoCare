@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for
 from datetime import datetime
+import os
 
 app = Flask(__name__)
 
@@ -82,9 +83,6 @@ def remove_employee(name):
 def print_all_paychecks():
     paycheck_list = [employee.print_paycheck() for employee in employees.values()]
     return render_template('all_paychecks.html', paychecks=paycheck_list)
-
-if __name__ == '__main__':
-    app.run(debug=True)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
