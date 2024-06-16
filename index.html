@@ -8,31 +8,107 @@
     <h1>Employee Management System for VJ's AutoCare</h1>
 
     <h2>Add Employee</h2>
-    <form action="/add_employee" method="post">
-        Name: <input type="text" name="name" required><br>
-        Hourly Wage: <input type="number" step="0.01" name="hourly_wage" required><br>
+    <form id="add-employee-form">
+        Name: <input type="text" id="name" required><br>
+        Hourly Wage: <input type="number" step="0.01" id="hourly_wage" required><br>
         <input type="submit" value="Add Employee">
     </form>
 
     <h2>Employees</h2>
-    <ul>
-        {% for name, employee in employees.items() %}
-            <li>{{ name }}
-                <form action="/clock_in/{{ name }}" method="post">
-                    Clock In Time (HH:MM): <input type="text" name="clock_in_time" required>
-                    <input type="submit" value="Clock In">
-                </form>
-                <form action="/clock_out/{{ name }}" method="post">
-                    Clock Out Time (HH:MM): <input type="text" name="clock_out_time" required>
-                    <input type="submit" value="Clock Out">
-                </form>
-                <a href="/print_paycheck/{{ name }}">Print Paycheck</a>
-                <a href="/remove_employee/{{ name }}">Remove Employee</a>
-            </li>
-        {% endfor %}
-    </ul>
+    <ul id="employee-list"></ul>
 
     <h2>Print All Paychecks</h2>
-    <a href="/print_all_paychecks">Print All Paychecks</a>
+    <a href="all_paychecks.html">Print All Paychecks</a>
+
+    <script>
+        const employees = [];
+
+        document.getElementById('add-employee-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const hourlyWage = parseFloat(document.getElementById('hourly_wage').value);
+
+            const employee = {
+                name: name,
+                hourlyWage: hourlyWage,
+                totalHoursWorked: 0,
+                clockInTime: null,
+                paychecks: []
+            };
+
+            employees.push(employee);
+            renderEmployees();
+            document.getElementById('add-employee-form').reset();
+        });
+
+        function renderEmployees() {
+            const employeeList = document.getElementById('employee-list');
+            employeeList.innerHTML = '';
+            employees.forEach(employee => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    ${employee.name} (${employee.hourlyWage}/hr)
+                    <form onsubmit="clockIn(event, '${employee.name}')">
+                        Clock In Time (HH:MM): <input type="text" id="clock_in_${employee.name}" required>
+                        <input type="submit" value="Clock In">
+                    </form>
+                    <form onsubmit="clockOut(event, '${employee.name}')">
+                        Clock Out Time (HH:MM): <input type="text" id="clock_out_${employee.name}" required>
+                        <input type="submit" value="Clock Out">
+                    </form>
+                    <a href="paycheck.html?name=${employee.name}">Print Paycheck</a>
+                    <button onclick="removeEmployee('${employee.name}')">Remove Employee</button>
+                `;
+                employeeList.appendChild(li);
+            });
+        }
+
+        function clockIn(event, name) {
+            event.preventDefault();
+            const employee = employees.find(e => e.name === name);
+            const clockInTime = document.getElementById(`clock_in_${name}`).value;
+            employee.clockInTime = clockInTime;
+            alert(`${employee.name} has successfully clocked in at ${clockInTime}.`);
+        }
+
+        function clockOut(event, name) {
+            event.preventDefault();
+            const employee = employees.find(e => e.name === name);
+            const clockOutTime = document.getElementById(`clock_out_${name}`).value;
+            const clockInTime = new Date(`1970-01-01T${employee.clockInTime}:00Z`);
+            const clockOutDateTime = new Date(`1970-01-01T${clockOutTime}:00Z`);
+
+            if (clockOutDateTime <= clockInTime) {
+                alert("Error: Clock out time must be later than clock in time.");
+                return;
+            }
+
+            const hoursWorked = (clockOutDateTime - clockInTime) / (1000 * 60 * 60);
+            employee.totalHoursWorked += hoursWorked;
+            employee.clockInTime = null;
+            alert(`${employee.name} has successfully clocked out at ${clockOutTime}. Total hours worked today: ${hoursWorked.toFixed(2)}`);
+        }
+
+        function removeEmployee(name) {
+            const index = employees.findIndex(e => e.name === name);
+            employees.splice(index, 1);
+            renderEmployees();
+        }
+
+        function saveEmployees() {
+            localStorage.setItem('employees', JSON.stringify(employees));
+        }
+
+        function loadEmployees() {
+            const savedEmployees = localStorage.getItem('employees');
+            if (savedEmployees) {
+                employees.push(...JSON.parse(savedEmployees));
+                renderEmployees();
+            }
+        }
+
+        window.onload = loadEmployees;
+        window.onbeforeunload = saveEmployees;
+    </script>
 </body>
 </html>
