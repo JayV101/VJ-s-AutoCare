@@ -1,168 +1,38 @@
-from datetime import datetime, timedelta
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Employee Management System</title>
+</head>
+<body>
+    <h1>Employee Management System for VJ's AutoCare</h1>
 
-class Employee:
-    def __init__(self, name, hourly_wage):
-        self.name = name
-        self.hourly_wage = hourly_wage
-        self.total_hours_worked = 0
-        self.clock_in_time = None
+    <h2>Add Employee</h2>
+    <form action="/add_employee" method="post">
+        Name: <input type="text" name="name" required><br>
+        Hourly Wage: <input type="number" step="0.01" name="hourly_wage" required><br>
+        <input type="submit" value="Add Employee">
+    </form>
 
-    def clock_in(self):
-        clock_in = input(f"Enter the time {self.name} started work (HH:MM in 24-hour format): ")
-        try:
-            self.clock_in_time = datetime.strptime(clock_in, '%H:%M')
-            print(f"{self.name} has successfully clocked in at {self.clock_in_time.strftime('%H:%M')}.")
-        except ValueError:
-            print("Invalid time format. Please try again.")
+    <h2>Employees</h2>
+    <ul>
+        {% for name, employee in employees.items() %}
+            <li>{{ name }}
+                <form action="/clock_in/{{ name }}" method="post">
+                    Clock In Time (HH:MM): <input type="text" name="clock_in_time" required>
+                    <input type="submit" value="Clock In">
+                </form>
+                <form action="/clock_out/{{ name }}" method="post">
+                    Clock Out Time (HH:MM): <input type="text" name="clock_out_time" required>
+                    <input type="submit" value="Clock Out">
+                </form>
+                <a href="/print_paycheck/{{ name }}">Print Paycheck</a>
+                <a href="/remove_employee/{{ name }}">Remove Employee</a>
+            </li>
+        {% endfor %}
+    </ul>
 
-    def clock_out(self):
-        if not self.clock_in_time:
-            print("Error: You must clock in before clocking out.")
-            return
-
-        clock_out = input(f"Enter the time {self.name} ended work (HH:MM in 24-hour format): ")
-        try:
-            clock_out_time = datetime.strptime(clock_out, '%H:%M')
-            if clock_out_time <= self.clock_in_time:
-                print("Error: Clock out time must be later than clock in time.")
-                return
-            hours_worked = (clock_out_time - self.clock_in_time).seconds / 3600
-            self.total_hours_worked += hours_worked
-            self.clock_in_time = None
-            print(f"{self.name} has successfully clocked out at {clock_out_time.strftime('%H:%M')}.")
-            print(f"Total hours worked today: {hours_worked:.2f}")
-        except ValueError:
-            print("Invalid time format. Please try again.")
-
-    def print_paycheck(self):
-        base_hours = min(self.total_hours_worked, 20)
-        overtime_hours = max(self.total_hours_worked - 20, 0)
-        base_pay = base_hours * self.hourly_wage
-        overtime_pay = overtime_hours * self.hourly_wage * 1.15
-        total_pay = base_pay + overtime_pay
-
-        print("\n--- Paycheck Details ---")
-        print(f"Employee Name: {self.name}")
-        print(f"Total Hours Worked: {self.total_hours_worked:.2f}")
-        print(f"Base Pay: ${base_pay:.2f}")
-        print(f"Overtime Pay: ${overtime_pay:.2f}")
-        print(f"Total Pay: ${total_pay:.2f}")
-
-def manager_print_paycheck(employee):
-    manager_pin = "321"  # Manager's PIN (password)
-    attempts = 3
-
-    while attempts > 0:
-        entered_pin = input("Enter the manager's PIN: ")
-        if entered_pin == manager_pin:
-            employee.print_paycheck()
-            return
-        else:
-            attempts -= 1
-            if attempts > 0:
-                print(f"Incorrect PIN. You have {attempts} more attempts.")
-            else:
-                print("Incorrect PIN. Access denied.")
-
-def print_all_paychecks(employees):
-    manager_pin = "321"  # Manager's PIN (password)
-    attempts = 3
-
-    while attempts > 0:
-        entered_pin = input("Enter the manager's PIN: ")
-        if entered_pin == manager_pin:
-            for employee in employees.values():
-                employee.print_paycheck()
-            return
-        else:
-            attempts -= 1
-            if attempts > 0:
-                print(f"Incorrect PIN. You have {attempts} more attempts.")
-            else:
-                print("Incorrect PIN. Access denied.")
-
-def select_employee(employees):
-    if not employees:
-        print("No employees available.")
-        return None
-    print("Select an employee:")
-    for idx, employee in enumerate(employees.values(), start=1):
-        print(f"{idx}. {employee.name}")
-    choice = int(input("Enter the number of the employee: "))
-    if 1 <= choice <= len(employees):
-        return list(employees.values())[choice - 1]
-    else:
-        print("Invalid choice.")
-        return None
-
-def remove_employee(employees):
-    if not employees:
-        print("No employees available.")
-        return
-    print("Select an employee to remove:")
-    for idx, employee in enumerate(employees.values(), start=1):
-        print(f"{idx}. {employee.name}")
-    choice = int(input("Enter the number of the employee: "))
-    if 1 <= choice <= len(employees):
-        employee_name = list(employees.keys())[choice - 1]
-        del employees[employee_name]
-        print(f"Employee {employee_name} has been removed.")
-    else:
-        print("Invalid choice.")
-
-def view_employees(employees):
-    if not employees:
-        print("No employees available.")
-    else:
-        print("\n--- Employee List ---")
-        for idx, employee in enumerate(employees.values(), start=1):
-            print(f"{idx}. {employee.name}")
-
-def main():
-    employees = {}
-    print("Payroll System for VJ's AutoCare")
-
-    while True:
-        print("\n--- Main Menu ---")
-        print("1. Add Employee")
-        print("2. Remove Employee")
-        print("3. Employee Clock In")
-        print("4. Employee Clock Out")
-        print("5. Print Employee Paycheck")
-        print("6. Print All Paychecks")
-        print("7. View Employee List")
-        print("8. Quit")
-
-        choice = input("Please enter your choice (1, 2, 3, 4, 5, 6, 7, or 8): ")
-
-        if choice == '1':
-            name = input("Enter the employee's name: ")
-            hourly_wage = float(input("Enter the employee's hourly wage: "))
-            employees[name] = Employee(name, hourly_wage)
-            print(f"Employee {name} added.")
-        elif choice == '2':
-            remove_employee(employees)
-        elif choice == '3':
-            employee = select_employee(employees)
-            if employee:
-                employee.clock_in()
-        elif choice == '4':
-            employee = select_employee(employees)
-            if employee:
-                employee.clock_out()
-        elif choice == '5':
-            employee = select_employee(employees)
-            if employee:
-                manager_print_paycheck(employee)
-        elif choice == '6':
-            print_all_paychecks(employees)
-        elif choice == '7':
-            view_employees(employees)
-        elif choice == '8':
-            print("Thank you for using the program. Have a great day!")
-            break
-        else:
-            print("Invalid input. Please try again.")
-
-if __name__ == "__main__":
-    main()
+    <h2>Print All Paychecks</h2>
+    <a href="/print_all_paychecks">Print All Paychecks</a>
+</body>
+</html>
