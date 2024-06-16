@@ -8,21 +8,43 @@
 <body>
     <h1>Employee Management System for VJ's AutoCare</h1>
 
-    <h2>Add Employee</h2>
-    <form id="add-employee-form">
-        Name: <input type="text" id="name" required><br>
-        Hourly Wage: <input type="number" step="0.01" id="hourly_wage" required><br>
-        <input type="submit" value="Add Employee">
-    </form>
+    <div id="login-section">
+        <h2>Manager Login</h2>
+        <form id="login-form">
+            Manager PIN: <input type="password" id="manager-pin" required><br>
+            <input type="submit" value="Login">
+        </form>
+    </div>
 
-    <h2>Employees</h2>
-    <ul id="employee-list"></ul>
+    <div id="main-content" style="display: none;">
+        <h2>Add Employee</h2>
+        <form id="add-employee-form">
+            Name: <input type="text" id="name" required><br>
+            Hourly Wage: <input type="number" step="0.01" id="hourly_wage" required><br>
+            <input type="submit" value="Add Employee">
+        </form>
 
-    <h2>Print All Paychecks</h2>
-    <a href="all_paychecks.html">Print All Paychecks</a>
+        <h2>Employees</h2>
+        <ul id="employee-list"></ul>
+
+        <h2>Print All Paychecks</h2>
+        <a href="all_paychecks.html">Print All Paychecks</a>
+    </div>
 
     <script>
+        const correctPin = '1234';
         const employees = [];
+
+        document.getElementById('login-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const enteredPin = document.getElementById('manager-pin').value;
+            if (enteredPin === correctPin) {
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+            } else {
+                alert('Incorrect PIN. Please try again.');
+            }
+        });
 
         document.getElementById('add-employee-form').addEventListener('submit', function (e) {
             e.preventDefault();
@@ -33,8 +55,7 @@
                 name: name,
                 hourlyWage: hourlyWage,
                 totalHoursWorked: 0,
-                clockInTime: null,
-                paychecks: []
+                clockInTime: null
             };
 
             employees.push(employee);
