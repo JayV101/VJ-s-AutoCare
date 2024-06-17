@@ -77,6 +77,11 @@ p {
     margin: 10px 0;
 }
 
+.center {
+    text-align: center;
+    margin-top: 20px;
+}
+
 @media (max-width: 768px) {
     form, ul {
         width: 95%;
