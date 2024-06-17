@@ -33,7 +33,7 @@ form {
     margin-bottom: 30px;
 }
 
-input[type="text"], input[type="number"] {
+input[type="text"], input[type="number"], input[type="password"] {
     width: calc(100% - 22px);
     padding: 10px;
     margin: 5px 0 20px;
