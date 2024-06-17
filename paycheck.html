@@ -17,10 +17,8 @@
         const employee = employees.find(e => e.name === name);
 
         function calculatePaycheck(employee) {
-            const baseHours = Math.min(employee.totalHoursWorked, 20);
-            const overtimeHours = Math.max(employee.totalHoursWorked - 20, 0);
-            const basePay = baseHours * employee.hourlyWage;
-            const overtimePay = overtimeHours * employee.hourlyWage * 1.15;
+            const basePay = employee.totalHoursWorked * employee.hourlyWage;
+            const overtimePay = employee.totalOvertimeHours * employee.hourlyWage * 1.5;
             const totalPay = basePay + overtimePay;
             return { basePay, overtimePay, totalPay };
         }
@@ -29,7 +27,8 @@
             const { basePay, overtimePay, totalPay } = calculatePaycheck(employee);
             document.getElementById('paycheck-details').innerHTML = `
                 <p>Employee Name: ${employee.name}</p>
-                <p>Total Hours Worked: ${employee.totalHoursWorked.toFixed(2)}</p>
+                <p>Total Regular Hours Worked: ${employee.totalHoursWorked.toFixed(2)}</p>
+                <p>Total Overtime Hours Worked: ${employee.totalOvertimeHours.toFixed(2)}</p>
                 <p>Base Pay: $${basePay.toFixed(2)}</p>
                 <p>Overtime Pay: $${overtimePay.toFixed(2)}</p>
                 <p>Total Pay: $${totalPay.toFixed(2)}</p>
