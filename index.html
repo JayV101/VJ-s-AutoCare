@@ -30,12 +30,15 @@
         <div class="center">
             <h2>Print All Paychecks</h2>
             <a href="all_paychecks.html">Print All Paychecks</a>
+            <button onclick="saveAsPDF()">Save as PDF</button>
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <script>
         const correctPin = '1234';
-        const employees = [];
+        const employees = JSON.parse(localStorage.getItem('employees')) || [];
+        const masterWorkLog = JSON.parse(localStorage.getItem('masterWorkLog')) || [];
 
         document.getElementById('login-form').addEventListener('submit', function (e) {
             e.preventDefault();
@@ -43,6 +46,7 @@
             if (enteredPin === correctPin) {
                 document.getElementById('login-section').style.display = 'none';
                 document.getElementById('main-content').style.display = 'block';
+                renderEmployees();
             } else {
                 alert('Incorrect PIN. Please try again.');
             }
@@ -57,10 +61,13 @@
                 name: name,
                 hourlyWage: hourlyWage,
                 totalHoursWorked: 0,
-                clockInTime: null
+                totalOvertimeHours: 0,
+                clockInTime: null,
+                workLog: []
             };
 
             employees.push(employee);
+            saveEmployees();
             renderEmployees();
             document.getElementById('add-employee-form').reset();
         });
@@ -80,8 +87,10 @@
                         Clock Out Time (HH:MM): <input type="text" id="clock_out_${employee.name}" required>
                         <input type="submit" value="Clock Out">
                     </form>
+                    <button onclick="showWorkLog('${employee.name}')">Show Work Log</button>
                     <a href="paycheck.html?name=${employee.name}">Print Paycheck</a>
                     <button onclick="removeEmployee('${employee.name}')">Remove Employee</button>
+                    <ul id="work_log_${employee.name}" style="display: none;"></ul>
                 `;
                 employeeList.appendChild(li);
             });
@@ -108,19 +117,53 @@
             }
 
             const hoursWorked = (clockOutDateTime - clockInTime) / (1000 * 60 * 60);
-            employee.totalHoursWorked += hoursWorked;
+            const regularHours = Math.min(hoursWorked, 8);
+            const overtimeHours = Math.max(hoursWorked - 8, 0);
+            employee.totalHoursWorked += regularHours;
+            employee.totalOvertimeHours += overtimeHours;
+            const workLogEntry = {
+                employee: employee.name,
+                date: new Date().toLocaleDateString(),
+                clockInTime: employee.clockInTime,
+                clockOutTime: clockOutTime,
+                regularHours: regularHours,
+                overtimeHours: overtimeHours
+            };
+            employee.workLog.push(workLogEntry);
+            masterWorkLog.push(workLogEntry);
+            saveEmployees();
+            saveMasterWorkLog();
             employee.clockInTime = null;
-            alert(`${employee.name} has successfully clocked out at ${clockOutTime}. Total hours worked today: ${hoursWorked.toFixed(2)}`);
+            alert(`${employee.name} has successfully clocked out at ${clockOutTime}. Total hours worked today: ${hoursWorked.toFixed(2)} (Regular: ${regularHours.toFixed(2)}, Overtime: ${overtimeHours.toFixed(2)})`);
+        }
+
+        function showWorkLog(name) {
+            const employee = employees.find(e => e.name === name);
+            const workLogElement = document.getElementById(`work_log_${name}`);
+            workLogElement.innerHTML = '';
+            employee.workLog.forEach(log => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    Date: ${log.date}, Clock In: ${log.clockInTime}, Clock Out: ${log.clockOutTime}, Regular Hours: ${log.regularHours.toFixed(2)}, Overtime Hours: ${log.overtimeHours.toFixed(2)}
+                `;
+                workLogElement.appendChild(li);
+            });
+            workLogElement.style.display = workLogElement.style.display === 'none' ? 'block' : 'none';
         }
 
         function removeEmployee(name) {
             const index = employees.findIndex(e => e.name === name);
             employees.splice(index, 1);
+            saveEmployees();
             renderEmployees();
         }
 
         function saveEmployees() {
             localStorage.setItem('employees', JSON.stringify(employees));
+        }
+
+        function saveMasterWorkLog() {
+            localStorage.setItem('masterWorkLog', JSON.stringify(masterWorkLog));
         }
 
         function loadEmployees() {
@@ -129,6 +172,22 @@
                 employees.push(...JSON.parse(savedEmployees));
                 renderEmployees();
             }
+        }
+
+        function saveAsPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            let y = 10;
+
+            masterWorkLog.forEach(log => {
+                doc.text(`Employee: ${log.employee}`, 10, y);
+                y += 10;
+                doc.text(`Date: ${log.date}, Clock In: ${log.clockInTime}, Clock Out: ${log.clockOutTime}, Regular Hours: ${log.regularHours.toFixed(2)}, Overtime Hours: ${log.overtimeHours.toFixed(2)}`, 10, y);
+                y += 10;
+                y += 10;
+            });
+
+            doc.save('work_log.pdf');
         }
 
         window.onload = loadEmployees;
