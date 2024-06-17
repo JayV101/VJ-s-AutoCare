@@ -209,14 +209,12 @@
             doc.text(`Employee: ${employee.name}`, 10, y);
             y += 10;
             employee.workLog.forEach(log => {
-                doc.text(`Date: ${log.date}, Clock In: ${log.clockInTime}, Clock Out: ${log.clockOutTime}, Regular Hours: ${log.regularHours.toFixed(2)}, Overtime Hours: ${log.o
-                                                                                                                                                                            vertimeHours.toFixed(2)}`, 10, y);
-y += 10;
-});         doc.save(`${employee.name}_work_log.pdf`);
-    }
+                doc.text(`Date: ${log.date}, Clock In: ${log.clockInTime}, Clock Out: ${log.clockOutTime}, Regular Hours: ${log.regularHours.toFixed(2)}, Overtime Hours: ${log.overtimeHours.toFixed(2)}`, 10, y);
+                y += 10;
+            });
 
-
-    window.onload = loadEmployees;
+            doc.save(`${employee.name}_work_log.pdf`);
+}    window.onload = loadEmployees;
     window.onbeforeunload = saveEmployees;
 </script>
 </body>
