@@ -37,8 +37,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <script>
         const correctPin = '1234';
-        const employees = JSON.parse(localStorage.getItem('employees')) || [];
-        const masterWorkLog = JSON.parse(localStorage.getItem('masterWorkLog')) || [];
+        let employees = JSON.parse(localStorage.getItem('employees')) || [];
+        let masterWorkLog = JSON.parse(localStorage.getItem('masterWorkLog')) || [];
 
         document.getElementById('login-form').addEventListener('submit', function (e) {
             e.preventDefault();
@@ -89,7 +89,7 @@
                     </form>
                     <button onclick="showWorkLog('${employee.name}')">Show Work Log</button>
                     <a href="paycheck.html?name=${employee.name}">Print Paycheck</a>
-                    <button onclick="removeEmployee('${employee.name}')">Remove Employee</button>
+                    <button onclick="confirmRemoveEmployee('${employee.name}')">Remove Employee</button>
                     <ul id="work_log_${employee.name}" style="display: none;"></ul>
                 `;
                 employeeList.appendChild(li);
@@ -151,6 +151,12 @@
             workLogElement.style.display = workLogElement.style.display === 'none' ? 'block' : 'none';
         }
 
+        function confirmRemoveEmployee(name) {
+            if (confirm(`Are you sure you want to remove ${name} from the system?`)) {
+                removeEmployee(name);
+            }
+        }
+
         function removeEmployee(name) {
             const index = employees.findIndex(e => e.name === name);
             employees.splice(index, 1);
@@ -169,7 +175,7 @@
         function loadEmployees() {
             const savedEmployees = localStorage.getItem('employees');
             if (savedEmployees) {
-                employees.push(...JSON.parse(savedEmployees));
+                employees = JSON.parse(savedEmployees);
                 renderEmployees();
             }
         }
