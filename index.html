@@ -21,6 +21,7 @@
         <form id="add-employee-form">
             Name: <input type="text" id="name" required><br>
             Hourly Wage: <input type="number" step="0.01" id="hourly_wage" required><br>
+            Overtime Wage: <input type="number" step="0.01" id="overtime_wage" required><br>
             <input type="submit" value="Add Employee">
         </form>
 
@@ -56,10 +57,12 @@
             e.preventDefault();
             const name = document.getElementById('name').value;
             const hourlyWage = parseFloat(document.getElementById('hourly_wage').value);
+            const overtimeWage = parseFloat(document.getElementById('overtime_wage').value);
 
             const employee = {
                 name: name,
                 hourlyWage: hourlyWage,
+                overtimeWage: overtimeWage,
                 totalHoursWorked: 0,
                 totalOvertimeHours: 0,
                 clockInTime: null,
@@ -78,7 +81,7 @@
             employees.forEach(employee => {
                 const li = document.createElement('li');
                 li.innerHTML = `
-                    ${employee.name} (${employee.hourlyWage}/hr)
+                    ${employee.name} (${employee.hourlyWage}/hr, ${employee.overtimeWage}/hr OT)
                     <form onsubmit="clockIn(event, '${employee.name}')">
                         Clock In Time (HH:MM): <input type="text" id="clock_in_${employee.name}" required>
                         <input type="submit" value="Clock In">
@@ -88,6 +91,7 @@
                         <input type="submit" value="Clock Out">
                     </form>
                     <button onclick="showWorkLog('${employee.name}')">Show Work Log</button>
+                    <button onclick="saveEmployeeAsPDF('${employee.name}')">Save as PDF</button>
                     <a href="paycheck.html?name=${employee.name}">Print Paycheck</a>
                     <button onclick="confirmRemoveEmployee('${employee.name}')">Remove Employee</button>
                     <ul id="work_log_${employee.name}" style="display: none;"></ul>
@@ -196,8 +200,21 @@
             doc.save('work_log.pdf');
         }
 
-        window.onload = loadEmployees;
-        window.onbeforeunload = saveEmployees;
-    </script>
-</body>
-</html>
+        function saveEmployeeAsPDF(name) {
+            const employee = employees.find(e => e.name === name);
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            let y = 10;
+
+            doc.text(`Employee: ${employee.name}`, 10, y);
+            y += 10;
+            employee.workLog.forEach(log => {
+                doc.text(`Date: ${log.date}, Clock In: ${log.clockInTime}, Clock Out: ${log.clockOutTime}, Regular Hours: ${log.regularHours.toFixed(2)}, Overtime Hours: ${log.o
+                                                                                                                                                                            vertimeHours.toFixed(2)}`, 10, y);
+y += 10;
+});         doc.save(`${employee.name}_work_log.pdf`);
+    }
+
+    window.onload = loadEmployees;
+    window.onbeforeunload = saveEmployees;
+</script>
